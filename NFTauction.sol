@@ -16,6 +16,7 @@ contract NFTauction {
     uint256 counter;
     uint256 _highestBid;
     address[] public bidders;
+    bool result=true;
 
     mapping(uint256 => Bid_details) public bidData;
     mapping(uint256 => auction) public AucInfo;
@@ -59,7 +60,7 @@ contract NFTauction {
         );
         // require(_startTime > 0, "startTime is can't be zero");
         // require(_endTime > _startTime, "Endtime can't before Starttime");
-        // _token.transferFrom(msg.sender,address(this),_nftid);
+        _token.transferFrom(msg.sender, address(this), _nftid);
     }
 
     function place_Bid(uint256 aucNum) public payable {
@@ -78,12 +79,15 @@ contract NFTauction {
             "New bid should be higher"
         );
         bidders.push(msg.sender);
-        Bid[bidders[cnt]] = bidAmount;
+        // Bid[bidders[cnt]] = bidAmount;
+        Bid[msg.sender] = bidAmount;
         bidData[aucNum] = Bid_details(msg.sender, bidAmount);
         myBid[msg.sender] = bidAmount;
     }
 
-    function ReturnBids(uint256 aucNum) public payable {
+
+    function Auction_Winner(uint256 aucNum) public payable {
+        require(result,"Result Aleready Declared");
         auction storage current = AucInfo[aucNum];
         require(msg.sender != current.auction_owner, "ERR: Only Owner!");
         // Highest bid
@@ -93,6 +97,7 @@ contract NFTauction {
         current.token.transferFrom(address(this), win, current.nftid);
         delete Bid[win];
         delete bidders[winner];
+        result=false;
     }
 
     function WithDraw(uint256 aucNum) public payable {
