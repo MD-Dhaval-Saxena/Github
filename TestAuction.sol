@@ -6,7 +6,7 @@ contract NFTAuction {
     constructor() {
         cnt = 0;
         bidders.push(address(0));
-        Bid[bidders[0]] = 0;
+        Bid[cnt][bidders[0]] = 0;
         owner = msg.sender;
     }
 
@@ -19,7 +19,7 @@ contract NFTAuction {
     bool result = true;
 
     mapping(uint256 => auction) public AucInfo;
-    mapping(address => uint256) public Bid;
+    mapping(uint=>mapping(address => uint256)) public Bid;
     mapping(address => bool) public check_winner; //check i am winner??
 
     // For testing
@@ -66,12 +66,10 @@ contract NFTAuction {
         // require(block.timestamp <= current.endTime, "Auction was Ended");
         uint256 bidAmount = msg.value;
         require(bidAmount >= current.baseValue, "Amount not Provided");
-        // TODO: maintain previous bid by same owner when he place second bid
-        uint256 lastbid = Bid[bidders[bidders.length - 1]];
+        uint256 lastbid = Bid[aucNum][bidders[bidders.length - 1]];
         require(bidAmount > lastbid, "New bid should be higher");
         bidders.push(msg.sender);
-        // Bid[msg.sender] = bidAmount;
-        Bid[msg.sender] += bidAmount;
+        Bid[aucNum][msg.sender] = bidAmount;
     }
 
     function Auction_Winner(uint256 aucNum) public payable {
@@ -83,20 +81,20 @@ contract NFTAuction {
         uint256 winner_index = bidders.length - 1;
         address win = bidders[winner_index];
         check_winner[win] = true;
-        payable(current.auction_owner).transfer(Bid[win]);
+        payable(current.auction_owner).transfer(Bid[aucNum][win]);
         current.token.transferFrom(address(this), win, current.nftid);
-        delete Bid[win];
+        delete Bid[aucNum][win];
         delete bidders[winner_index];
         result = false;
     }
 
-    function WithDraw() public payable {
+    function WithDraw(uint aucNum) public payable {
         require(result==false,"Wait for Result Declaration");
-        require(Bid[msg.sender] > 0, "Your not eligible or You did ur Withdrawal");
-        uint256 Deducting_fees = Bid[msg.sender] / 100;
-        uint256 transferAmount = Bid[msg.sender] - Deducting_fees;
+        require(Bid[aucNum][msg.sender] > 0, "Your not eligible or You did ur Withdrawal");
+        uint256 Deducting_fees = Bid[aucNum][msg.sender] / 100;
+        uint256 transferAmount = Bid[aucNum][msg.sender] - Deducting_fees;
         payable(msg.sender).transfer(transferAmount);
-        delete Bid[msg.sender];
+        delete Bid[aucNum][msg.sender];
     }
 }
 
