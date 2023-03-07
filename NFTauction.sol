@@ -66,11 +66,9 @@ contract NFTAuction {
         // require(block.timestamp <= current.endTime, "Auction was Ended");
         uint256 bidAmount = msg.value;
         require(bidAmount >= current.baseValue, "Amount not Provided");
-        // TODO: maintain previous bid by same owner when he place second bid
         uint256 lastbid = Bid[bidders[bidders.length - 1]];
         require(bidAmount > lastbid, "New bid should be higher");
         bidders.push(msg.sender);
-        // Bid[msg.sender] = bidAmount;
         Bid[msg.sender] += bidAmount;
     }
 
@@ -106,3 +104,13 @@ contract NFTAuction {
 // 3 2000000000000000000
 // 4 3000000000000000000
 
+
+
+
+// 1st 1
+// 2nd 2
+// 1st 3
+// 2nd 5
+
+// 1st=4
+// 2nd =7
