@@ -56,7 +56,7 @@ contract MyAuction is ERC1155Holder {
             _priceTokens
         );
         _token.safeTransferFrom(msg.sender, address(this), _id, _amount, "");
-        // 0x000
+        // 0x00
     }
 
     function place_Bid(uint256 aucNum) public payable {
