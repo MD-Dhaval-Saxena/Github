@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-contract MyAuction {
+contract MyAuction is ERC1155Holder {
     constructor() {
         bidders.push(address(0));
         Bid[bidders[0]] = 0;
@@ -14,11 +15,11 @@ contract MyAuction {
 
     uint256 public auc_no;
     uint256 counter;
-    address[]  bidders;
+    address[] bidders;
     bool result = true;
 
     mapping(address => uint256) public Bid;
-    mapping(address=> uint256) public Balance;
+    mapping(address => uint256) public Balance;
     mapping(address => bool) public check_winner; //check i am winner??
 
     struct auction {
@@ -54,22 +55,23 @@ contract MyAuction {
             _endTime,
             _priceTokens
         );
-        _token.safeTransferFrom(msg.sender, msg.sender, _id, _amount, "");
-        // 0x00                  
+        _token.safeTransferFrom(msg.sender, address(this), _id, _amount, "");
+        // 0x00
     }
 
     function place_Bid(uint256 aucNum) public payable {
         auction storage current = AuctionInfo[aucNum];
         require(current.owner != address(0), "Auction Not Found");
-           require(msg.value >= current.priceTokens,
+        require(
+            msg.value >= current.priceTokens,
             "MSG: Price less than token amount"
-            );
+        );
         require(current.amount > 0, "MSG: Token Sold out");
         // require(
         //     msg.value >= current.priceTokens * current.amount,
         //     "MSG: Price less than tokens amount"
         // );
-     
+
         // require(block.timestamp >= current.startTime, "Auction not started");
         // require(block.timestamp <= current.endTime, "Auction was Ended");
         uint256 bidAmount = msg.value;
@@ -78,7 +80,7 @@ contract MyAuction {
         bidders.push(msg.sender);
         // Bid[msg.sender] += bidAmount;
         Bid[msg.sender] = bidAmount;
-        Balance[msg.sender]+=bidAmount;
+        Balance[msg.sender] += bidAmount;
     }
 
     function Auction_Winner(uint256 aucNum) public payable {
@@ -89,11 +91,11 @@ contract MyAuction {
         uint256 winner_index = bidders.length - 1;
         address win = bidders[winner_index];
         check_winner[win] = true;
-        require(win != address(0),"MSG: can't transfer to zero addrs");
-        payable(current.owner).transfer(Bid[win]);
+        require(win != address(0), "MSG: can't transfer to zero addrs");
+        payable(address(this)).transfer(Bid[win]);
         // current.token.safeTransferFrom(current.owner, win,current.id,current.amount,"");
-        current.token.safeTransferFrom(current.owner, win, current.id, 1, "");
-        current.amount-=1;
+        current.token.safeTransferFrom(address(this), win, current.id, 1, "");
+        current.amount -= 1;
         delete Bid[win];
         delete Balance[win];
         delete bidders[winner_index];
